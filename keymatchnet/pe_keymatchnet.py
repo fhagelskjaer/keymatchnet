@@ -24,12 +24,9 @@ from util import get_loss, IOStream
 import sklearn.metrics as metrics
 import json
 import open3d as o3d
-import trimesh
-from dgl.geometry import farthest_point_sampler
 from sklearn.neighbors import KDTree
 
 from data import filterPoints, pc_center2cp, normalize_1d, normalize_2d
-import scipy
 import copy
 from distinctipy import distinctipy
 

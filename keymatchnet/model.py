@@ -23,8 +23,6 @@ import torch.nn as nn
 import torch.nn.init as init
 import torch.nn.functional as F
 
-from dgl.geometry import farthest_point_sampler
-
 def knn(x, k):
     inner = -2*torch.matmul(x.transpose(2, 1), x)
     xx = torch.sum(x**2, dim=1, keepdim=True)
