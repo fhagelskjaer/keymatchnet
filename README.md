@@ -10,8 +10,10 @@ To test the code on the real dataset:
 
 >		git clone https://github.com/fhagelskjaer/keymatchnet.git
 >		cd keymatchnet
->		Download mfe.zip place in current folder and unzip
->		cd  keymathcnet
+
+Download mfe.zip place in current folder and unzip.
+
+>		cd keymathcnet
 >		python pe_keymatchnet.py --dataset_name picklecap --model_root trained_network/keymatchnet_electronics/models/model.t7
 >		python pe_keymatchnet.py --dataset_name pickleblu --model_root trained_network/keymatchnet_electronics/models/model.t7
 
