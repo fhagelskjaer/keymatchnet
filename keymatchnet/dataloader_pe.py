@@ -81,7 +81,7 @@ class PickleData:
             object_poses = pickle.load(f)		
 	
         for posepair in object_poses:
-              scene = "/home/fhagelskjaer/workspace/pointposer/MFE/" + posepair["scene"]
+              scene = "../MFE/" + posepair["scene"]
               transform = posepair["transform"]
               model_info = "0"
               # import pdb; pdb.set_trace()
@@ -179,8 +179,8 @@ class PickleData:
             # """
 
             if (len(object_points) < 30):
-                print(item, self.full_dataset[item]["label"], self.full_dataset[item]["cloud"], self.full_dataset[item]["transform"]) 
-                print("return none")
+                # print(item, self.full_dataset[item]["label"], self.full_dataset[item]["cloud"], self.full_dataset[item]["transform"]) 
+                # print("return none")
                 # obj_trans = copy.deepcopy(obj_pc).transform(self.full_dataset[item]["transform"])
                 # o3d.visualization.draw_geometries([modelCloud, obj_trans])
                 # return None
@@ -343,8 +343,8 @@ class WrsData:
             cad_string = "/home/fhagelskjaer/workspace/bin-picking-para-pose/data/models/15_SBARB6200ZZ_30.stl"
             scene_folder = "/home/fhagelskjaer/workspace/BlenderBin/data_old/15_SBARB6200ZZ_30_1/train_pbr/"
         elif dataset_name[:-1] == "erf0":
-            cad_string = "/home/fhagelskjaer/workspace/gpvn/electrical_test/testcomp_00000" + dataset_name[-1] + ".ply"
-            scene_folder = "/home/fhagelskjaer/workspace/BlenderBin/data/testcomp_00000" + dataset_name[
+            cad_string = "../test_cad_models/electrical_test/testcomp_00000" + dataset_name[-1] + ".ply"
+            scene_folder = "../test_data/testcomp_00000" + dataset_name[
                 -1] + "_1/train_pbr/"
             test_range = 80
         else:

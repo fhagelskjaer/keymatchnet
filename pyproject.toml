@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "keymatchnet"
+version = "0.5.0"
+authors = [
+  { name="Frederik Hagelskjaer", email="frederikhagel@gmail.com" },
+]
+
+description = "A package for the network presented in KeyMatchNet"
+keywords = ["deep learning", "zero-shot", "point cloud"]
+readme = "README.md"
+requires-python = ">=3"
+classifiers = [
+      "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.hatch.build]
+include = [
+  "keymatchnet/pe_utils.py",
+  "keymatchnet/model.py",
+  "keymatchnet/pe_gpvn.py",
+  "keymatchnet/util.py",
+  "keymatchnet/data.py",
+]
+
+[project.scripts]
+kmncompute = "keymatchnet.pe_gpvn:test"
+
+# [project.urls]
+# "Homepage" = "https://gitlab.com/fhagelskjaer/print_cuneiform"
+# "Bug Tracker" = "https://gitlab.com/fhagelskjaer/print_cuneiform/-/issues"

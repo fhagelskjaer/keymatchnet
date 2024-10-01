@@ -36,8 +36,6 @@ from distinctipy import distinctipy
 import time
 import sys
 
-from print_cuneiform.sumerian import int_to_sumerian as sci
-
 from dataloader_pe import *
 
 from pe_utils import *
@@ -54,9 +52,9 @@ def test(args):
     num_key = args.num_key
     
     if args.dataset_name == "pickleblu":
-        dataloader = PickleData(number_of_keypoints=num_key, cad_string="../../pointposer/MFE/cap2-6_remesh.ply", pickle_file="../../pointposer/MFE/blu__pose_cloud_pairs.pickle" )
+        dataloader = PickleData(number_of_keypoints=num_key, cad_string="../MFE/cap2-6_remesh.ply", pickle_file="../MFE/blu__pose_cloud_pairs.pickle" )
     elif args.dataset_name == "picklecap":
-        dataloader = PickleData(number_of_keypoints=num_key, cad_string="../../pointposer/MFE/1673308_mm.ply", pickle_file="../../pointposer/MFE/cap__pose_cloud_pairs.pickle" )
+        dataloader = PickleData(number_of_keypoints=num_key, cad_string="../MFE/1673308_mm.ply", pickle_file="../MFE/cap__pose_cloud_pairs.pickle" )
     else:
         dataloader = WrsData(number_of_keypoints=num_key, pointcloud_size=pcs, dataset_name=args.dataset_name, single_fpi=args.single_fpi)
 
@@ -264,7 +262,6 @@ def test(args):
     print(dataloader.test_radius)
     
     print(np.sum(success) / len(success), np.sum(success), len(success))
-    print( np.sum(success) / len(success), sci(np.sum(success)), "of", sci(len(success)))
 
 
 if __name__ == "__main__":
