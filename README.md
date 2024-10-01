@@ -19,6 +19,16 @@ Download mfe.zip place in current folder and unzip.
 
 The experiments should give approximately 0.74 and 0.73, respectively.
 
+# Installation
+
+Python 3.9.15
+
+>		pip install torch==2.1.2
+>		pip install dgl==0.9.1
+>		pip install open3d==0.18.0
+>		pip install trimesh==3.18.1
+>		pip install distinctipy==1.3.4
+
 # Citation
 If you use this code in your research, please cite the paper:
 
