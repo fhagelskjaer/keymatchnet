@@ -6,14 +6,15 @@ KeyMatchNet: Zero-Shot Pose Estimation in 3D Point Clouds by Generalized Keypoin
 <a href="https://keymatchnet.github.io/">[Project Page]</a>
 </div>
 
-To test the code on the real dataset:
+To test the code on individual point clouds:
 
 >		git clone https://github.com/fhagelskjaer/keymatchnet.git
->		cd keymatchnet
+>		cd keymatchnet/keymatchnet
+>		python single_pe_keymatchnet.py --model_root trained_network/keymatchnet_electronics/models/model.t7 --obj testdata/09_BGPSL6-9-L30-F7.stl --scene testdata/point_cloud.pcd --visu True
 
+To test the code on the real test data. Move to the folder keymatchnet/keymatchnet.
 Download mfe.zip place in current folder and unzip.
 
->		cd keymathcnet
 >		python pe_keymatchnet.py --dataset_name picklecap --model_root trained_network/keymatchnet_electronics/models/model.t7
 >		python pe_keymatchnet.py --dataset_name pickleblu --model_root trained_network/keymatchnet_electronics/models/model.t7
 
