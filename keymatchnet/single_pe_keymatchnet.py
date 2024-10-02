@@ -61,10 +61,9 @@ def test(args):
 
     num_key = args.num_key
     
-    cad_string = "testdata/09_BGPSL6-9-L30-F7.stl"
+    cad_string = args.obj
 
-    cloud_name = "testdata/point_cloud.pcd"
-
+    cloud_name = args.scene
 
     """ new visualization """
     input_colors = [(1, 1, 1), (0, 0, 0)]
@@ -256,6 +255,10 @@ if __name__ == "__main__":
                         help='Voting threshold')
     parser.add_argument('--point_xyz', type=str, default='', metavar='N',
                         help='position of point to find, e.g. 5.1,52.5,490 ')
+    parser.add_argument('--obj', type=str, default='testdata/09_BGPSL6-9-L30-F7.stl', metavar='N',
+                        help='object model')
+    parser.add_argument('--scene', type=str, default='testdata/point_cloud.pcd', metavar='N',
+                        help='scene point cloud')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()
