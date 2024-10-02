@@ -15,25 +15,27 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl.geometry import farthest_point_sampler
 
-from model import DGCNN_gpvn
+from .model import DGCNN_gpvn
+from .model import DGCNN_gpvn_obj
+from .model import DGCNN_gpvn_purenet
 
 import numpy as np
 
-from util import get_loss, IOStream
+from .util import get_loss, IOStream
 import sklearn.metrics as metrics
 import json
 import open3d as o3d
 import trimesh
 from sklearn.neighbors import KDTree
 
-from data import filterPoints, pc_center2cp, normalize_1d, normalize_2d
+from .data import filterPoints, pc_center2cp, normalize_1d, normalize_2d
 import copy
 from distinctipy import distinctipy
 
 import time
 import sys
 
-from pe_utils import *
+from .pe_utils import *
 
 def select_point(pcd):
     vis = o3d.visualization.VisualizerWithEditing()

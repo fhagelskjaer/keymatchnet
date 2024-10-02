@@ -24,14 +24,13 @@ classifiers = [
 include = [
   "keymatchnet/pe_utils.py",
   "keymatchnet/model.py",
-  "keymatchnet/pe_gpvn.py",
+  "keymatchnet/kmn_pe_keymatchnet.py",
   "keymatchnet/util.py",
   "keymatchnet/data.py",
 ]
 
 [project.scripts]
-kmncompute = "keymatchnet.pe_gpvn:test"
+kmncompute = "keymatchnet.kmn_pe_keymatchnet:test"
 
-# [project.urls]
-# "Homepage" = "https://gitlab.com/fhagelskjaer/print_cuneiform"
-# "Bug Tracker" = "https://gitlab.com/fhagelskjaer/print_cuneiform/-/issues"
+[project.urls]
+"Homepage" = "https://keymatchnet.github.io/"
