@@ -49,9 +49,9 @@ def test(args):
     num_key = args.num_key
     
     if args.dataset_name == "pickleblu":
-        dataloader = PickleData(number_of_keypoints=num_key, cad_string="../MFE/cap2-6_remesh.ply", pickle_file="../MFE/blu__pose_cloud_pairs.pickle" )
+        dataloader = PickleData(number_of_keypoints=num_key, cad_string="MFE/cap2-6_remesh.ply", pickle_file="MFE/blu__pose_cloud_pairs.pickle" )
     elif args.dataset_name == "picklecap":
-        dataloader = PickleData(number_of_keypoints=num_key, cad_string="../MFE/1673308_mm.ply", pickle_file="../MFE/cap__pose_cloud_pairs.pickle" )
+        dataloader = PickleData(number_of_keypoints=num_key, cad_string="MFE/1673308_mm.ply", pickle_file="MFE/cap__pose_cloud_pairs.pickle" )
     else:
         dataloader = WrsData(number_of_keypoints=num_key, pointcloud_size=pcs, dataset_name=args.dataset_name, single_fpi=args.single_fpi)
 

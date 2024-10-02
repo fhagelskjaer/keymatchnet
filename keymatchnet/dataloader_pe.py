@@ -81,7 +81,7 @@ class PickleData:
             object_poses = pickle.load(f)		
 	
         for posepair in object_poses:
-              scene = "../MFE/" + posepair["scene"]
+              scene = "MFE/" + posepair["scene"]
               transform = posepair["transform"]
               model_info = "0"
               # import pdb; pdb.set_trace()
