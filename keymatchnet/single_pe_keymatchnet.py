@@ -107,7 +107,7 @@ def test():
     model = DGCNN_gpvn(args.k, args.emb_dims, num_key, 0).to(device)
     model = nn.DataParallel(model)
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model.load_state_dict(torch.load(args.model_root))
+    model.load_state_dict(torch.load(args.model_root, map_location=torch.device("cuda" if args.cuda else "cpu")))
     model.eval()
     for param in model.parameters():
         param.requires_grad = False
@@ -163,18 +163,16 @@ def test():
     # point_check = [ scene_pointcloud[2000, :3]]
     try:
         point_xyz = args.point_xyz
-        # print( point_xyz.split(",") )
         x, y, z = point_xyz.split(",")
-        # print( x, y, z )
         x, y, z = float(x), float(y), float(z)
-        # print( x, y, z )
         point_check = [[x, y, z ]]
     except:
         point_check = [scene_pointcloud[ select_point(scene_cloud)[0], :3] ]
     print( point_check )
+    point_check = np.array(point_check)
 
 
-    centerTreeFilter = KDTree([point_check[0]], leaf_size=2)
+    centerTreeFilter = KDTree(point_check, leaf_size=2)
     distFilter, indeciesFilter = centerTreeFilter.query(scene_pointcloud[:, :3], k=1)
     pointlist = scene_pointcloud[distFilter.flatten() < radius, :]
 
@@ -187,7 +185,7 @@ def test():
 
     point_list = pointlist
 
-    data = pc_center2cp(np.array(point_list[:num_point])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
+    data = pc_center2cp(np.array(point_list[:num_point])[:, :6], point_check)  # point_array[:NUM_POINT,:6]
     data, _ = normalize_1d(data)
     data = data.astype('float32')
     scene_info = np.array(point_list[:num_point])[:, :6]
