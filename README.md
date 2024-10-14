@@ -29,6 +29,7 @@ Python 3.9.15
 >		pip install open3d==0.18.0
 >		pip install trimesh==3.18.1
 >		pip install distinctipy==1.3.4
+>		pip install h5py==3.7.0
 
 # Citation
 If you use this code in your research, please cite the paper:
