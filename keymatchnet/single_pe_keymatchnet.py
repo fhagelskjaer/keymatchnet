@@ -8,32 +8,25 @@
 """
 
 from __future__ import print_function
-import os
 import argparse
+import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dgl.geometry import farthest_point_sampler
-
-from model import DGCNN_gpvn
-
 import numpy as np
 
-from util import get_loss, IOStream
-import sklearn.metrics as metrics
-import json
-import open3d as o3d
-import trimesh
 from sklearn.neighbors import KDTree
-
-from data import filterPoints, pc_center2cp, normalize_1d, normalize_2d
-import copy
 from distinctipy import distinctipy
+import open3d as o3d
 
-import time
-import sys
+# from model import DGCNN_gpvn
 
-from pe_utils import *
+from . import (
+    model,
+    fps,
+    data,
+    pe_utils,
+)
 
 def select_point(pcd):
     vis = o3d.visualization.VisualizerWithEditing()
@@ -104,12 +97,12 @@ def test():
     ### Load data model
     device = torch.device("cuda" if args.cuda else "cpu")
 
-    model = DGCNN_gpvn(args.k, args.emb_dims, num_key, 0).to(device)
-    model = nn.DataParallel(model)
+    network_model = model.DGCNN_gpvn(args.k, args.emb_dims, num_key, 0).to(device)
+    network_model = nn.DataParallel(network_model)
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model.load_state_dict(torch.load(args.model_root, map_location=torch.device("cuda" if args.cuda else "cpu")))
-    model.eval()
-    for param in model.parameters():
+    network_model.load_state_dict(torch.load(args.model_root, map_location=torch.device("cuda" if args.cuda else "cpu")))
+    network_model.eval()
+    for param in network_model.parameters():
         param.requires_grad = False
    
 
@@ -131,12 +124,9 @@ def test():
 
     object_xyz = np.asarray(obj_pc.points)
 
-    # TODO: compute the point cloud
-    x = torch.FloatTensor(object_xyz)
-    x = np.reshape(x, (1, -1, 3))
-    fpi = farthest_point_sampler(x, num_key)
+    fpi = fps.farthest_point_sampler(object_xyz, num_key)
 
-    object_xyz_feature = object_xyz[fpi[0], :]
+    object_xyz_feature = object_xyz[fpi, :]
 
     obj_pc_temp = copy.deepcopy(obj_pc)
     # R = obj_pc_temp.get_rotation_matrix_from_xyz(
@@ -144,13 +134,12 @@ def test():
     # obj_pc_temp.rotate(R, center=(0, 0, 0))
     model_pc_out = np.concatenate([np.asarray(obj_pc_temp.points), np.asarray(obj_pc_temp.normals)], axis=1)
 
-    model_pc_out = normalize_2d(model_pc_out)
+    model_pc_out = data.normalize_2d(model_pc_out)
 
     obj_model = obj_pc
     obj = model_pc_out.astype('float32')
-    fpi = fpi[0].cpu().numpy()
 
-    mm_dist = mm_by_keypoint(np.asarray(obj_model.points)[fpi, :3])*4
+    mm_dist = pe_utils.mm_by_keypoint(np.asarray(obj_model.points)[fpi, :3])*4
 
     ### Create scene data
     scene_cloud = o3d.io.read_point_cloud(cloud_name)
@@ -185,9 +174,9 @@ def test():
 
     point_list = pointlist
 
-    data = pc_center2cp(np.array(point_list[:num_point])[:, :6], point_check)  # point_array[:NUM_POINT,:6]
-    data, _ = normalize_1d(data)
-    data = data.astype('float32')
+    input_data = data.pc_center2cp(np.array(point_list[:num_point])[:, :6], point_check)  # point_array[:NUM_POINT,:6]
+    input_data, _ = data.normalize_1d(input_data)
+    input_data = input_data.astype('float32')
     scene_info = np.array(point_list[:num_point])[:, :6]
 
 
@@ -195,17 +184,17 @@ def test():
     scene_pc.points = o3d.utility.Vector3dVector(np.array(scene_info)[:, :3])
     scene_pc.normals = o3d.utility.Vector3dVector(np.array(scene_info)[:, 3:6])
 
-    data, obj, fpi = torch.from_numpy(np.array([data])), torch.from_numpy(np.array([obj])), torch.from_numpy(np.array([fpi]))
-    data, obj, fpi = data.to(device), obj.to(device), fpi.to(device)
+    input_data, obj, fpi = torch.from_numpy(np.array([input_data])), torch.from_numpy(np.array([obj])), torch.from_numpy(np.array([fpi]))
+    input_data, obj, fpi = input_data.to(device), obj.to(device), fpi.to(device)
 
-    data = data.permute(0, 2, 1)
+    input_data = input_data.permute(0, 2, 1)
     obj = obj.permute(0, 2, 1)
 
-    seg_pred, key_pred = model(data, obj, fpi, device)
+    seg_pred, key_pred = network_model(input_data, obj, fpi, device)
 
     ### Prepare data for network and run through
 
-    result, score = compute(seg_pred, [scene_info], key_pred, [obj_model], fpi, num_key, args.vt, device, mm_dist=mm_dist)
+    result, score = pe_utils.compute(seg_pred, [scene_info], key_pred, [obj_model], fpi, num_key, args.vt, device, mm_dist=mm_dist)
 
     print( "Score:", score)
     print( "Pose estimation:" )

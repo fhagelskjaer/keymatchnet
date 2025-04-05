@@ -13,18 +13,13 @@ from torch.utils.data import Dataset
 
 from sklearn.neighbors import KDTree
 
-from scipy.signal import medfilt2d
-# scipy.ndimage.median_filter
-import scipy
-from dgl.geometry import farthest_point_sampler
-
-# from Noise import Noise_model_new_alignment
-
 import trimesh
-import time
 
 import pickle
 
+from . import (
+    fps
+)
 
 def load_data_h5(data_dir):
     # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -192,9 +187,8 @@ class GPVN(Dataset):
         # print( item )
 
         object_xyz = np.asarray(self.obj_pc.points)
-        x = torch.FloatTensor(object_xyz)
-        x = np.reshape(x, (1, -1, 3))
-        fpi = farthest_point_sampler(x, 20)
+        fpi = fps.farthest_point_sampler(object_xyz, 20)
+
 
         # fpi = self.fpi[0,:]
         # np.random.shuffle(fpi)
@@ -522,9 +516,7 @@ class GPVN_set_knocpose(Dataset):
         model_center = object_set["model_center"]
 
         object_xyz = np.asarray(obj_pc.points)
-        x = torch.FloatTensor(object_xyz)
-        x = np.reshape(x, (1, -1, 3))
-        fpi = farthest_point_sampler(x, self.number_of_keypoints)
+        fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
         object_xyz_feature = object_xyz[fpi[0], :]
 
@@ -842,12 +834,13 @@ class GPVN_set(Dataset):
         if self.partition == "train" and np.random.rand() < 0.6:
             fpi_idx = list(range(object_xyz.shape[0])) 
             np.random.shuffle(fpi_idx)
-            fpi = np.array([fpi_idx[:self.number_of_keypoints]])
+            fpi = np.array(fpi_idx[:self.number_of_keypoints])
         else:
-            fpi = farthest_point_sampler(x, self.number_of_keypoints).cpu().numpy()
+            fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
+
          
 
-        object_xyz_feature = object_xyz[fpi[0], :]
+        object_xyz_feature = object_xyz[fpi, :]
 
         # get index TODO
         dataset_index = 0
@@ -1123,9 +1116,8 @@ class GPVN_wrs(Dataset):
         radius = object_set["radius"]
 
         object_xyz = np.asarray(obj_pc.points)
-        x = torch.FloatTensor(object_xyz)
-        x = np.reshape(x, (1, -1, 3))
-        fpi = farthest_point_sampler(x, self.number_of_keypoints)
+        fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
+
 
         object_xyz_feature = object_xyz[fpi[0], :]
 
@@ -1403,9 +1395,8 @@ class GPVN_icbin(Dataset):
         radius = object_set["radius"]
 
         object_xyz = np.asarray(obj_pc.points)
-        x = torch.FloatTensor(object_xyz)
-        x = np.reshape(x, (1, -1, 3))
-        fpi = farthest_point_sampler(x, self.num_key)
+        fpi = fps.farthest_point_sampler(object_xyz, self.num_key)
+
 
         object_xyz_feature = object_xyz[fpi[0], :]
 
@@ -1715,9 +1706,8 @@ class GPVN_tless(Dataset):
         model_center = object_set["model_center"]
 
         object_xyz = np.asarray(obj_pc.points)
-        x = torch.FloatTensor(object_xyz)
-        x = np.reshape(x, (1, -1, 3))
-        fpi = farthest_point_sampler(x, self.num_key)
+        fpi = fps.farthest_point_sampler(object_xyz, self.num_key)
+
 
         object_xyz_feature = object_xyz[fpi[0], :]
 
@@ -2029,9 +2019,8 @@ class GPVN_lmo(Dataset):
 
 
         object_xyz = np.asarray(obj_pc.points)
-        x = torch.FloatTensor(object_xyz)
-        x = np.reshape(x, (1, -1, 3))
-        fpi = farthest_point_sampler(x, self.num_key)
+        fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
+
 
         object_xyz_feature = object_xyz[fpi[0], :]
 
@@ -2357,9 +2346,8 @@ class GPVN_megapose(Dataset):
             model_center = object_set["model_center"]
 
             object_xyz = np.asarray(obj_pc.points)
-            x = torch.FloatTensor(object_xyz)
-            x = np.reshape(x, (1, -1, 3))
-            fpi = farthest_point_sampler(x, self.number_of_keypoints)
+            fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
+
 
             object_xyz_feature = object_xyz[fpi[0], :]
 
@@ -2690,11 +2678,12 @@ class GPVN_data_engine(Dataset):
             if self.partition == "train" and np.random.rand() < 0.6:
                 fpi_idx = list(range(object_xyz.shape[0])) 
                 np.random.shuffle(fpi_idx)
-                fpi = np.array([fpi_idx[:self.number_of_keypoints]])
+                fpi = np.array(fpi_idx[:self.number_of_keypoints])
             else:
-                fpi = farthest_point_sampler(x, self.number_of_keypoints).cpu().numpy()
+                fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
-            object_xyz_feature = object_xyz[fpi[0], :]
+
+            object_xyz_feature = object_xyz[fpi, :]
 
             cloud_name = self.full_dataset[item]["cloud"]
 
@@ -3031,11 +3020,12 @@ class GPVN_data_engine2(Dataset):
             if self.partition == "train" and np.random.rand() < 0.6:
                 fpi_idx = list(range(object_xyz.shape[0])) 
                 np.random.shuffle(fpi_idx)
-                fpi = np.array([fpi_idx[:self.number_of_keypoints]])
+                fpi = np.array(fpi_idx[:self.number_of_keypoints])
             else:
-                fpi = farthest_point_sampler(x, self.number_of_keypoints).cpu().numpy()
+                fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
-            object_xyz_feature = object_xyz[fpi[0], :]
+
+            object_xyz_feature = object_xyz[fpi, :]
 
             cloud_name = self.full_dataset[item]["cloud"]
 
@@ -3340,11 +3330,12 @@ class GPVN_pickle(Dataset):
             if self.partition == "train" and np.random.rand() < 0.6:
                 fpi_idx = list(range(object_xyz.shape[0])) 
                 np.random.shuffle(fpi_idx)
-                fpi = np.array([fpi_idx[:self.number_of_keypoints]])
+                fpi = np.array(fpi_idx[:self.number_of_keypoints])
             else:
-                fpi = farthest_point_sampler(x, self.number_of_keypoints).cpu().numpy()
+                fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
-            object_xyz_feature = object_xyz[fpi[0], :]
+
+            object_xyz_feature = object_xyz[fpi, :]
 
             cloud_name = self.full_dataset[item]["cloud"]
 

@@ -7,38 +7,23 @@
 @Time: 2023/3/1 10:00 AM
 """
 
-from __future__ import print_function
-import os
-import argparse
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-from model import DGCNN_gpvn
-from model import DGCNN_gpvn_obj
-from model import DGCNN_gpvn_purenet
-
 import numpy as np
-
-from util import get_loss, IOStream
-import sklearn.metrics as metrics
 import json
 import open3d as o3d
 import trimesh
-from dgl.geometry import farthest_point_sampler
 from sklearn.neighbors import KDTree
 
-from data import filterPoints, pc_center2cp, normalize_1d, normalize_2d
-import scipy
 import copy
-from distinctipy import distinctipy
-
-import time
 import sys
-
-import pandas as pd
 import pickle
-import glob
+
+
+from . import (
+    fps,
+    data,
+)
+
+
 
 class PickleData:
     def __init__(self, number_of_keypoints, cad_string, pickle_file, radius=-1):
@@ -103,11 +88,9 @@ class PickleData:
             model_center = object_set["model_center"]
 
             object_xyz = np.asarray(obj_pc.points)
-            x = torch.FloatTensor(object_xyz)
-            x = np.reshape(x, (1, -1, 3))
-            fpi = farthest_point_sampler(x, self.number_of_keypoints)
+            fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
-            object_xyz_feature = object_xyz[fpi[0], :]
+            object_xyz_feature = object_xyz[fpi, :]
 
             cloud_name = self.full_dataset[item]["cloud"]
 
@@ -254,7 +237,7 @@ class PickleData:
             point_list = pointlist
 
             # print( point_check[0] )
-            data = pc_center2cp(np.array(point_list[:NUM_POINT])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
+            input_data = data.pc_center2cp(np.array(point_list[:NUM_POINT])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
             seg = np.array(cat_list)[:NUM_POINT]
             key = np.array(feat_list)[:NUM_POINT]
 
@@ -279,15 +262,15 @@ class PickleData:
             model_pc_out = np.concatenate([np.asarray(obj_pc_temp.points), np.asarray(obj_pc_temp.normals)], axis=1)
 
             # center_point_cloud  # TODO
-            model_pc_out = normalize_2d(model_pc_out)
+            model_pc_out = data.normalize_2d(model_pc_out)
 
-            data, _ = normalize_1d(data)
+            input_data, _ = data.normalize_1d(input_data)
 
-            l_data.append(np.copy(data.astype('float32')))
+            l_data.append(np.copy(input_data.astype('float32')))
             l_seg.append(np.copy(seg))
             l_key.append(np.copy(key))
             l_mo.append(np.copy(model_pc_out.astype('float32')))
-            l_fpi.append(np.copy(fpi[0].cpu().numpy()))
+            l_fpi.append(np.copy(fpi))
             l_obj.append(obj_pc)
             l_pointcloud.append(np.array(point_list[:NUM_POINT])[:, :9])
 
@@ -364,9 +347,7 @@ class WrsData:
         self.single_fpi = single_fpi
         if self.single_fpi:
             object_xyz = np.asarray(obj_pc.points)
-            x = torch.FloatTensor(object_xyz)
-            x = np.reshape(x, (1, -1, 3))
-            fpi = farthest_point_sampler(x, self.number_of_keypoints)
+            fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
             self.fpi = fpi
 
         candidate = trimesh.load_mesh(cad_string)
@@ -403,9 +384,7 @@ class WrsData:
             fpi = self.fpi
         else:
             object_xyz = np.asarray(obj_pc.points)
-            x = torch.FloatTensor(object_xyz)
-            x = np.reshape(x, (1, -1, 3))
-            fpi = farthest_point_sampler(x, self.number_of_keypoints)
+            fpi = fps.farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
         object_xyz = np.asarray(obj_pc.points)
         object_xyz_feature = object_xyz[fpi[0], :]
@@ -499,7 +478,7 @@ class WrsData:
             point_check = [input_pointcloud[object_points[point_sorted_index], :3]]
             # print(dist, ind, normalized_point_ind, point_check)
 
-            pointlist = filterPoints(input_pointcloud, point_check[0], radius, gt_poses, input_tree)
+            pointlist = data.filterPoints(input_pointcloud, point_check[0], radius, gt_poses, input_tree)
 
             while len(pointlist) < NUM_POINT:
                 pointlist = np.array(list(pointlist) + list(pointlist))
@@ -529,7 +508,7 @@ class WrsData:
             point_list = pointlist
 
             # print( point_check[0] )
-            data = pc_center2cp(np.array(point_list[:NUM_POINT])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
+            input_data = data.pc_center2cp(np.array(point_list[:NUM_POINT])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
             seg = np.array(cat_list)[:NUM_POINT]
             key = np.array(feat_list)[:NUM_POINT]
 
@@ -547,15 +526,15 @@ class WrsData:
             obj_pc_temp.rotate(R, center=(0, 0, 0))
             model_pc_out = np.concatenate([np.asarray(obj_pc_temp.points), np.asarray(obj_pc_temp.normals)], axis=1)
 
-            model_pc_out = normalize_2d(model_pc_out)
+            model_pc_out = data.normalize_2d(model_pc_out)
 
-            data, _ = normalize_1d(data)
+            input_data, _ = data.normalize_1d(input_data)
 
-            l_data.append(np.copy(data.astype('float32')))
+            l_data.append(np.copy(input_data.astype('float32')))
             l_seg.append(np.copy(seg))
             l_key.append(np.copy(key))
             l_mo.append(np.copy(model_pc_out.astype('float32')))
-            l_fpi.append(np.copy(fpi[0].cpu().numpy()))
+            l_fpi.append(np.copy(fpi))
             l_obj.append(obj_pc)
             l_pointcloud.append(np.array(point_list[:NUM_POINT])[:, :9])
             l_gt.append(gt_poses[normalized_point_ind])
@@ -582,9 +561,7 @@ class WrsData:
             fpi = self.fpi
         else:
             object_xyz = np.asarray(obj_pc.points)
-            x = torch.FloatTensor(object_xyz)
-            x = np.reshape(x, (1, -1, 3))
-            fpi = farthest_point_sampler(x, self.number_of_keypoints)
+            fpi = farthest_point_sampler(object_xyz, self.number_of_keypoints)
 
         object_xyz = np.asarray(obj_pc.points)
         # object_xyz_feature = object_xyz[fpi[0], :]
@@ -672,7 +649,7 @@ class WrsData:
             point_check = [input_pointcloud[object_points[point_sorted_index], :3]]
             # print(dist, ind, normalized_point_ind, point_check)
 
-            pointlist = filterPoints(input_pointcloud, point_check[0], radius, gt_poses, input_tree)
+            pointlist = data.filterPoints(input_pointcloud, point_check[0], radius, gt_poses, input_tree)
 
             while len(pointlist) < NUM_POINT:
                 pointlist = np.array(list(pointlist) + list(pointlist))
@@ -703,11 +680,11 @@ class WrsData:
 
             point_list = pointlist
 
-            data = pc_center2cp(np.array(point_list[:NUM_POINT])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
+            input_data = data.pc_center2cp(np.array(point_list[:NUM_POINT])[:, :6], point_check[0])  # point_array[:NUM_POINT,:6]
 
-            data, _ = normalize_1d(data)
+            input_data, _ = data.normalize_1d(input_data)
 
-            l_data.append(np.copy(data.astype('float32')))
+            l_data.append(np.copy(input_data.astype('float32')))
             l_pointcloud.append(np.array(point_list[:NUM_POINT])[:, :9])
             l_gt.append(gt_poses[normalized_point_ind])
 

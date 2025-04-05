@@ -6,36 +6,26 @@
 @File: pe_gpvn.py
 @Time: 2023/3/1 10:00 AM
 """
-
-from __future__ import print_function
-import os
 import argparse
+import numpy as np
+import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model import DGCNN_gpvn
-from model import DGCNN_gpvn_obj
-from model import DGCNN_gpvn_purenet
-
-import numpy as np
-
-from util import get_loss, IOStream
-import sklearn.metrics as metrics
-import json
 import open3d as o3d
 from sklearn.neighbors import KDTree
 
-from data import filterPoints, pc_center2cp, normalize_1d, normalize_2d
 import copy
 from distinctipy import distinctipy
 
-import time
-import sys
+from . import (
+    model,
+    dataloader_pe,
+    data,
+    pe_utils,
+)
 
-from dataloader_pe import *
-
-from pe_utils import *
 
 def test(args):
     np.set_printoptions(suppress=True)
@@ -49,11 +39,11 @@ def test(args):
     num_key = args.num_key
     
     if args.dataset_name == "pickleblu":
-        dataloader = PickleData(number_of_keypoints=num_key, cad_string="MFE/cap2-6_remesh.ply", pickle_file="MFE/blu__pose_cloud_pairs.pickle" )
+        dataloader = dataloader_pe.PickleData(number_of_keypoints=num_key, cad_string="MFE/cap2-6_remesh.ply", pickle_file="MFE/blu__pose_cloud_pairs.pickle" )
     elif args.dataset_name == "picklecap":
-        dataloader = PickleData(number_of_keypoints=num_key, cad_string="MFE/1673308_mm.ply", pickle_file="MFE/cap__pose_cloud_pairs.pickle" )
+        dataloader = dataloader_pe.PickleData(number_of_keypoints=num_key, cad_string="MFE/1673308_mm.ply", pickle_file="MFE/cap__pose_cloud_pairs.pickle" )
     else:
-        dataloader = WrsData(number_of_keypoints=num_key, pointcloud_size=pcs, dataset_name=args.dataset_name, single_fpi=args.single_fpi)
+        dataloader = dataloader_pe.WrsData(number_of_keypoints=num_key, pointcloud_size=pcs, dataset_name=args.dataset_name, single_fpi=args.single_fpi)
 
     """ new visualization """
     input_colors = [(1, 1, 1), (0, 0, 0)]
@@ -63,28 +53,28 @@ def test(args):
     device = torch.device("cuda" if args.cuda else "cpu")
 
     if not args.single_fpi:
-        model = DGCNN_gpvn(args.k, args.emb_dims, num_key, 0).to(device)
-        model = nn.DataParallel(model)
+        network_model = model.DGCNN_gpvn(args.k, args.emb_dims, num_key, 0).to(device)
+        network_model = nn.DataParallel(network_model)
         print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model.load_state_dict(torch.load(args.model_root))
-        model.eval()
-        for param in model.parameters():
+        network_model.load_state_dict(torch.load(args.model_root))
+        network_model.eval()
+        for param in network_model.parameters():
             param.requires_grad = False
     else:
         datareturn = dataloader.get_item(0)
         _, _, _, obj, fpi, obj_model, _, _, radius = datareturn
        
-        mm_dist = mm_by_keypoint(np.asarray(obj_model[0].points)[fpi[0], :3])*4
+        mm_dist = pe_utils.mm_by_keypoint(np.asarray(obj_model[0].points)[fpi[0], :3])*4
 
         obj, fpi = torch.from_numpy(obj), torch.from_numpy(fpi)
 
         obj, fpi = obj.to(device), fpi.to(device)
         
-        model_run = DGCNN_gpvn_purenet(args.k, args.emb_dims, num_key, 0).to(device)
+        model_run = model.DGCNN_gpvn_purenet(args.k, args.emb_dims, num_key, 0).to(device)
         model_run = nn.DataParallel(model_run)
         model_run.load_state_dict(torch.load(args.model_root), strict=False)
 
-        model_obj = DGCNN_gpvn_obj(args.k, args.emb_dims, num_key, 0).to(device)
+        model_obj = model.DGCNN_gpvn_obj(args.k, args.emb_dims, num_key, 0).to(device)
         model_obj = nn.DataParallel(model_obj)
         model_obj.load_state_dict(torch.load(args.model_root), strict=False)
 
@@ -129,33 +119,33 @@ def test(args):
         start_time = time.time()
 
         if args.single_fpi:
-            data, scene_info, gt_poses, radius = datareturn
+            input_data, scene_info, gt_poses, radius = datareturn
            
-            data = np.array(data)
+            input_data = np.array(input_data)
             scene_info = np.array(scene_info)
 
-            data = torch.from_numpy(data)
-            data = data.to(device)
-            data = data.permute(0, 2, 1)
-            seg_pred, key_pred = model_run(data, objfeature, device)
+            input_data = torch.from_numpy(input_data)
+            input_data = input_data.to(device)
+            input_data = input_data.permute(0, 2, 1)
+            seg_pred, key_pred = model_run(input_data, objfeature, device)
         else:
-            data, seg, key, obj, fpi, obj_model, scene_info, gt_poses, radius = datareturn
-            mm_dist = mm_by_keypoint(np.asarray(obj_model[0].points)[fpi[0], :3])*4
+            input_data, seg, key, obj, fpi, obj_model, scene_info, gt_poses, radius = datareturn
+            mm_dist = pe_utils.mm_by_keypoint(np.asarray(obj_model[0].points)[fpi[0], :3])*4
 
-            data, obj, seg, key, fpi = torch.from_numpy(data), torch.from_numpy(obj), torch.from_numpy(
+            input_data, obj, seg, key, fpi = torch.from_numpy(input_data), torch.from_numpy(obj), torch.from_numpy(
                 seg), torch.from_numpy(
                key), torch.from_numpy(fpi)
-            data, obj, seg, key, fpi = data.to(device), obj.to(device), seg.to(device), key.to(device), fpi.to(device)
-            data = data.permute(0, 2, 1)
+            input_data, obj, seg, key, fpi = input_data.to(device), obj.to(device), seg.to(device), key.to(device), fpi.to(device)
+            input_data = input_data.permute(0, 2, 1)
             obj = obj.permute(0, 2, 1)
 
-            seg_pred, key_pred = model(data, obj, fpi, device)
+            seg_pred, key_pred = network_model(input_data, obj, fpi, device)
 
-        batch_size = data.size()[0]
+        batch_size = input_data.size()[0]
 
         if args.verbose:
             print( "Network lasted", time.time() - start_time )
-        result, score = compute(seg_pred, scene_info, key_pred, obj_model, fpi, num_key, args.vt, device, mm_dist=mm_dist)
+        result, score = pe_utils.compute(seg_pred, scene_info, key_pred, obj_model, fpi, num_key, args.vt, device, mm_dist=mm_dist)
 
         if args.verbose:
             print("Pose estimation lasted", time.time() - start_time)
@@ -171,7 +161,7 @@ def test(args):
             gt_transform[:3, 3] = gt_poses[gt_i][0]
             gt_transform[:3, :3] = gt_poses[gt_i][1]
             
-            distance.append(addi(result, gt_transform, obj_model[0]))
+            distance.append(pe_utils.addi(result, gt_transform, obj_model[0]))
 
         mean_dist.append(np.min(np.array(distance)))
         
