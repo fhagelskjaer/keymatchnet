@@ -10,7 +10,7 @@ To test the code on individual point clouds:
 
 >		git clone https://github.com/fhagelskjaer/keymatchnet.git
 >		cd keymatchnet
->   pip install .
+>		pip install .
 >		python -m keymatchnet.single_pe_keymatchnet --model_root trained_network/keymatchnet_electronics/models/model.t7 --obj testdata/09_BGPSL6-9-L30-F7.stl --scene testdata/point_cloud.pcd --visu True
 
 To test the code on the real test data. Download mfe.zip from https://nextcloud.sdu.dk/index.php/s/YgMkA3eHagRjd5k and place it in the current folder and unzip.
@@ -22,11 +22,11 @@ The experiments should give approximately 0.74 and 0.73, respectively.
 
 # Installation
 
-Versions used in paper:
+Versions used in paper: 
 
 Python 3.9.15
 
->   pip install numpy==1.24.2
+>		pip install numpy==1.24.2
 >		pip install torch==2.1.2
 >		pip install open3d==0.18.0
 >		pip install trimesh==3.18.1
