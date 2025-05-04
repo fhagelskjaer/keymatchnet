@@ -446,14 +446,72 @@ class DGCNN_gpvn_obj(nn.Module):
         
         obj = self.conv_obj7(obj)                       # (batch_size, 1024+64*3, num_points) -> (batch_size, 512, num_points)
         obj = self.conv_obj8(obj)                       # (batch_size, 512, num_points) -> (batch_size, 32, num_points)
-
-        
-        obs, embs, kp = obj.size()
-    
-        obj = obj.view(batch_size, embs, 1, kp)
-        obj = obj.repeat(1, 1, num_points, 1)          # (batch_size, 1024, num_points)
         
         return obj
+
+
+class DGCNN_gpvn_scene(nn.Module):
+    def __init__(self, k, emb_dims):
+        super(DGCNN_gpvn_scene, self).__init__()
+        self.k = k
+
+
+        self.conv1 = nn.Sequential(nn.Conv2d(12, 64, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, 64),
+                                   nn.LeakyReLU(negative_slope=0.2))
+        self.conv2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, 64),
+                                   nn.LeakyReLU(negative_slope=0.2))
+        self.conv3 = nn.Sequential(nn.Conv2d(64*2, 64, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, 64),
+                                   nn.LeakyReLU(negative_slope=0.2))
+        self.conv4 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, 64),
+                                   nn.LeakyReLU(negative_slope=0.2))
+        self.conv5 = nn.Sequential(nn.Conv2d(64*2, 64, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, 64),
+                                   nn.LeakyReLU(negative_slope=0.2))
+        self.conv6 = nn.Sequential(nn.Conv1d(192, emb_dims, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, emb_dims),
+                                   nn.LeakyReLU(negative_slope=0.2))
+        self.conv7 = nn.Sequential(nn.Conv1d(1024+64*3, 512, kernel_size=1, bias=False),
+        # self.conv7 = nn.Sequential(nn.Conv1d(1856, 512, kernel_size=1, bias=False),
+                                   nn.GroupNorm(32, 512),
+                                   nn.LeakyReLU(negative_slope=0.2))
+
+    def forward(self, x, device):
+
+        num_points = x.size(2)
+
+        x = get_graph_feature(x, k=self.k, dim9=True, device=device)   # (batch_size, 9, num_points) -> (batch_size, 9*2, num_points, k)
+        x = self.conv1(x)                       # (batch_size, 9*2, num_points, k) -> (batch_size, 64, num_points, k)
+        x = self.conv2(x)                       # (batch_size, 64, num_points, k) -> (batch_size, 64, num_points, k)
+        x1 = x.max(dim=-1, keepdim=False)[0]    # (batch_size, 64, num_points, k) -> (batch_size, 64, num_points)
+
+        x = get_graph_feature(x1, k=self.k, device=device)     # (batch_size, 64, num_points) -> (batch_size, 64*2, num_points, k)
+        x = self.conv3(x)                       # (batch_size, 64*2, num_points, k) -> (batch_size, 64, num_points, k)
+        x = self.conv4(x)                       # (batch_size, 64, num_points, k) -> (batch_size, 64, num_points, k)
+        x2 = x.max(dim=-1, keepdim=False)[0]    # (batch_size, 64, num_points, k) -> (batch_size, 64, num_points)
+
+        x = get_graph_feature(x2, k=self.k, device=device)     # (batch_size, 64, num_points) -> (batch_size, 64*2, num_points, k)
+        x = self.conv5(x)                       # (batch_size, 64*2, num_points, k) -> (batch_size, 64, num_points, k)
+        x3 = x.max(dim=-1, keepdim=False)[0]    # (batch_size, 64, num_points, k) -> (batch_size, 64, num_points)
+
+        x = torch.cat((x1, x2, x3), dim=1)      # (batch_size, 64*3, num_points)
+
+        x = self.conv6(x)                       # (batch_size, 64*3, num_points) -> (batch_size, emb_dims, num_points)
+        x = x.max(dim=-1, keepdim=True)[0]      # (batch_size, emb_dims, num_points) -> (batch_size, emb_dims, 1)
+
+        # x = torch.cat((x, obj), dim=1)          # (batch_size, 1088, 1)
+        
+        x = x.repeat(1, 1, num_points)          # (batch_size, 1024, num_points)
+        x = torch.cat((x, x1, x2, x3), dim=1)   # (batch_size, 1024+64*3, num_points)
+
+        # print( x.size() )
+
+        x = self.conv7(x)                       # (batch_size, 1024+64*3, num_points) -> (batch_size, 512, num_points)
+
+        return x
 
 
 class DGCNN_gpvn_purenet(nn.Module):
@@ -503,10 +561,14 @@ class DGCNN_gpvn_purenet(nn.Module):
 
     def forward(self, x, obj, device):
 
-        obs, embs, _, kp = obj.size()
-
         batch_size = x.size(0)
         num_points = x.size(2)
+
+        obs, embs, kp = obj.size()
+    
+        obj = obj.view(batch_size, embs, 1, kp)
+        obj = obj.repeat(1, 1, num_points, 1)          # (batch_size, 1024, num_points)
+
 
         x = get_graph_feature(x, k=self.k, dim9=True, device=device)   # (batch_size, 9, num_points) -> (batch_size, 9*2, num_points, k)
         x = self.conv1(x)                       # (batch_size, 9*2, num_points, k) -> (batch_size, 64, num_points, k)
