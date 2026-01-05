@@ -77,6 +77,7 @@ def test(args):
         model_obj = model.DGCNN_gpvn_obj(args.k, args.emb_dims, num_key, 0).to(device)
         model_obj = nn.DataParallel(model_obj)
         model_obj.load_state_dict(torch.load(args.model_root), strict=False)
+        model_obj.eval()
 
         obj = obj.permute(0, 2, 1)
         
