@@ -33,14 +33,14 @@ dependencies = [
 include = [
   "keymatchnet/pe_utils.py",
   "keymatchnet/model.py",
-  "keymatchnet/kmn_pe_keymatchnet.py",
+  "keymatchnet/single_pe_keymatchnet_huggingface.py",
   "keymatchnet/util.py",
   "keymatchnet/data.py",
   "keymatchnet/fps.py",
 ]
 
 [project.scripts]
-kmncompute = "keymatchnet.kmn_pe_keymatchnet:test"
+kmn = "keymatchnet.single_pe_keymatchnet_huggingface:test"    
 
 [project.urls]
 "Homepage" = "https://keymatchnet.github.io/"

@@ -1,17 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Author: Yue Wang
-@Contact: yuewangx@mit.edu
-@File: model.py
-@Time: 2018/10/13 6:35 PM
-
-Modified by 
-@Author: An Tao, Ziyi Wu
-@Contact: ta19@mails.tsinghua.edu.cn, dazitu616@gmail.com
-@Time: 2022/7/30 7:49 PM
-"""
-
 
 import os
 import sys
@@ -22,6 +10,8 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 import torch.nn.functional as F
+
+from huggingface_hub import PyTorchModelHubMixin
 
 def knn(x, k):
     inner = -2*torch.matmul(x.transpose(2, 1), x)
@@ -129,7 +119,13 @@ class DGCNN_pvn(nn.Module):
         return x_seg, x_key
 
 
-class DGCNN_gpvn(nn.Module):
+class DGCNN_gpvn(nn.Module,
+        PyTorchModelHubMixin,
+        library_name="keymatchnet",
+        repo_url="https://github.com/fhagelskjaer/keymatchnet",
+        paper_url="https://arxiv.org/abs/2303.16102",
+        docs_url="https://keymatchnet.github.io/",
+    ):
     def __init__(self, k, emb_dims, num_key, dropout=0.0):
         super(DGCNN_gpvn, self).__init__()
         self.k = k
