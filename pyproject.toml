@@ -27,6 +27,7 @@ dependencies = [
     "trimesh >= 3.18.1",
     "distinctipy >= 1.3.4",
     "h5py >= 3.7.0",
+    "huggingface-hub==0.34.4",
     ]
 
 [tool.hatch.build]
@@ -40,7 +41,7 @@ include = [
 ]
 
 [project.scripts]
-kmn = "keymatchnet.single_pe_keymatchnet_huggingface:test"    
+keymatchnet = "keymatchnet.single_pe_keymatchnet_huggingface:test"    
 
 [project.urls]
 "Homepage" = "https://keymatchnet.github.io/"

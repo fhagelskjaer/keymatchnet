@@ -6,7 +6,12 @@ KeyMatchNet: Zero-Shot Pose Estimation in 3D Point Clouds by Generalized Keypoin
 <a href="https://keymatchnet.github.io/">[Project Page]</a>
 </div>
 
-To test the code on individual point clouds:
+To test KeyMatchNet on your own data:
+
+>		pip install git+https://github.com/fhagelskjaer/keymatchnet.git
+>		keymatchnet --obj test_object.stl --scene point_cloud.pcd --visu True
+
+To download and test KeyMatchNet:
 
 >		git clone https://github.com/fhagelskjaer/keymatchnet.git
 >		cd keymatchnet
