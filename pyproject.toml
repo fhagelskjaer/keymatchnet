@@ -27,7 +27,7 @@ dependencies = [
     "trimesh >= 3.18.1",
     "distinctipy >= 1.3.4",
     "h5py >= 3.7.0",
-    "huggingface-hub==0.34.4",
+    "transformers",
     ]
 
 [tool.hatch.build]

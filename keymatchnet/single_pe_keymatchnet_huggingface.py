@@ -95,7 +95,7 @@ def test():
     ### Load data model
     device = torch.device("cuda" if args.cuda else "cpu")
 
-    network_model = model.DGCNN_gpvn.from_pretrained(args.  model_root_huggingface, k=args.k, emb_dims=args.emb_dims, num_key=num_key).to(device)
+    network_model = model.DGCNN_gpvn.from_pretrained(args.model_root_huggingface, k=args.k, emb_dims=args.emb_dims, num_key=num_key).to(device)
     
     network_model = nn.DataParallel(network_model)
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -104,8 +104,12 @@ def test():
     for param in network_model.parameters():
         param.requires_grad = False
        
-    obj_cad = o3d.io.read_triangle_mesh(cad_string)
-    obj_pc = obj_cad.sample_points_poisson_disk(2048)
+    if cad_string.lower().endswith('.pcd'):
+        obj_pc = o3d.io.read_point_cloud(cad_string)
+        obj_pc = obj_pc.farthest_point_down_sample(2048)
+    else:
+        obj_cad = o3d.io.read_triangle_mesh(cad_string)
+        obj_pc = obj_cad.sample_points_poisson_disk(2048)
     
     # print(np.max(obj_pc.points, axis=0), np.min(obj_pc.points, axis=0))
     radius = np.max(np.max(obj_pc.points, axis=0) - np.min(obj_pc.points, axis=0))
