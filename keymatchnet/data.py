@@ -291,7 +291,7 @@ class GPVN(Dataset):
 
         """
         dist, ind = treeLocal.query(input_pointcloud[:,:3], k=1)
-        color = np.zeros((len(input_pointcloud),3), np.float)
+        color = np.zeros((len(input_pointcloud),3), float)
         color[:,2] = (dist < GOOD_DIST)[:,0] * 255
         # import pdb; pdb.set_trace()
 
@@ -945,7 +945,7 @@ class GPVN_set(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -1217,7 +1217,7 @@ class GPVN_wrs(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -1833,7 +1833,7 @@ class GPVN_tless(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -2139,7 +2139,7 @@ class GPVN_lmo(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -2454,7 +2454,7 @@ class GPVN_megapose(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -2785,7 +2785,7 @@ class GPVN_data_engine(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -3127,7 +3127,7 @@ class GPVN_data_engine2(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -3442,7 +3442,7 @@ class GPVN_pickle(Dataset):
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 

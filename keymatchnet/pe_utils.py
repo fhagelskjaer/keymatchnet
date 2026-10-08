@@ -195,9 +195,7 @@ def compute(seg_pred, scene_info, key_pred, obj_model, fpi, num_key, vt, device,
             Rnp, tnp = R_new.detach().cpu().numpy(), t_new.detach().cpu().numpy()
             transformation = np.eye(4)
             transformation[:3, :3] = Rnp[0]
-            transformation[0, 3] = tnp[0][0]
-            transformation[1, 3] = tnp[0][1]
-            transformation[2, 3] = tnp[0][2]
+            transformation[:3, 3] = tnp[0, :, 0]
 
             best_transform = transformation
             best_transform_score = score_sum

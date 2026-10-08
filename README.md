@@ -31,7 +31,7 @@ Versions used in paper:
 
 Python 3.9.15
 
->		pip install numpy==1.24.2
+>		pip install numpy==2.5.3
 >		pip install torch==2.1.2
 >		pip install open3d==0.18.0
 >		pip install trimesh==3.18.1

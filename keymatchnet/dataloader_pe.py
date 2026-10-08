@@ -198,7 +198,7 @@ class PickleData:
             # print(dist, ind, normalized_point_ind, point_check)
 
             """
-            color = np.zeros((len(input_pointcloud),3), np.float)
+            color = np.zeros((len(input_pointcloud),3), float)
             color[:,2] = (dist < GOOD_DIST)[:,0] * 255
             # import pdb; pdb.set_trace()
 
@@ -445,7 +445,7 @@ class WrsData:
         object_points = np.flatnonzero(dist < GOOD_DIST)
 
         """
-        color = np.zeros((len(input_pointcloud),3), np.float)
+        color = np.zeros((len(input_pointcloud),3), float)
         color[:,2] = (dist < GOOD_DIST)[:,0] * 255
         # import pdb; pdb.set_trace()
 
@@ -622,7 +622,7 @@ class WrsData:
         object_points = np.flatnonzero(dist < GOOD_DIST)
 
         """
-        color = np.zeros((len(input_pointcloud),3), np.float)
+        color = np.zeros((len(input_pointcloud),3), float)
         color[:,2] = (dist < GOOD_DIST)[:,0] * 255
         # import pdb; pdb.set_trace()
 
